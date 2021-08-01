@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>App</title>
+  </head>
+  <body>
+    <div>
+      <h1>Index</h1>
+      <br />
+      <div>
+        <button onclick="downloadApp()">Download App</button>
+      </div>
+    </div>
+    <script>
+      async function downloadApp() {
+        const appName = (prompt("Add name", "myApp") || "myApp").trim();
+        try {
+          console.log("Sending request")
+          const response = await axios.post(
+            `/download/${appName}`,
+            { dad: "yes" },
+            { responseType: "blob" }
+          );
+          console.log("Got response")
+          const data = new Blob([response.data]);
+            const blob = data;
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `${appName}.zip`;
+
+            document.body.appendChild(link);
+
+            link.click();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </body>
+</html>
