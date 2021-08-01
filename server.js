@@ -5,8 +5,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: false }));
 
-const { getNeuInstalled } = require("./installNeu");
-const { publishNeu } = require("./publishNeu");
+const { getNeuInstalled } = require("./NeuModules/NeuInstaller");
+const { publishNeu } = require("./NeuModules/NeuBundler");
 const port = 3000;
 
 app.get('/', (req, res) => {
@@ -25,6 +25,6 @@ app.post("/download/:appName", async (req, res) => {
 
 app.listen(port, async () => {
     console.log("Checking if nue installed");
-    await getNeuInstalled();
+    // await getNeuInstalled();
     console.log(`Example app listening at http://localhost:${port}`);
 });

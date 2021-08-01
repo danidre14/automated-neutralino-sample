@@ -1,6 +1,8 @@
 const path = require("path");
-const fs = require('fs');
-const { asyncExec, asyncWriteFile } = require("./shellFunc");
+const archiver = require("archiver");
+const fs = require("fs");
+const { asyncExec, asyncWriteFile } = require("../shellFunc");
+const { getNeuPath, removeActivePath } = require("./NeuPathManager");
 
 const generateAppOptions = (appName) => {
     return {
@@ -72,29 +74,25 @@ const generateAppOptions = (appName) => {
     };
 }
 
+
 module.exports.publishNeu = async function (appName = "myapp11") {
     try {
-        const publishDir = path.resolve(__dirname, "publishDir");
-        const appDir = path.resolve(publishDir, appName);
-
-        // check if folder exists
-        if (!fs.existsSync(publishDir)) {
-            fs.mkdirSync(publishDir);
-        }
-        // create neu app
-        await asyncExec(`neu create ${appName}`, { cwd: publishDir });
-
+        const { appDir, pathName } = await getNeuPath();
 
         // configure a lot of things
         const appOptions = generateAppOptions(appName);
-        for(const key of Object.keys(appOptions))
-        await asyncWriteFile(path.resolve(appDir, key), appOptions[key]);
+        for (const key of Object.keys(appOptions))
+            await asyncWriteFile(path.resolve(appDir, key), appOptions[key]);
         // ---
 
         // build neu
-        await asyncExec("neu build --release", { cwd: path.resolve(publishDir, appName) });
+        await asyncExec("neu build", { cwd: appDir });
+        // await asyncExec("neu build --release", { cwd: appDir });
 
-        return path.resolve(appDir, "dist", `${appName}-release.zip`);
+        const outputPath = path.resolve(appDir, "dist", `${appName}-release.zip`)
+        await zipDirectory(path.resolve(appDir, "dist"), outputPath);
+        removeActivePath(pathName);
+        return outputPath;
     } catch (e) {
         // install neu globally
         console.log("Error publishing application: ", e);
@@ -102,38 +100,17 @@ module.exports.publishNeu = async function (appName = "myapp11") {
     }
 };
 
-(async () => {
-    console.log("In publish");
+function zipDirectory(source, out) {
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const stream = fs.createWriteStream(out);
 
-    publishNeu = async function (appName = "myapp11") {
-        try {
-            const publishDir = path.resolve(__dirname, "publishTemps2");
-            const appDir = path.resolve(publishDir, appName);
+    return new Promise((resolve, reject) => {
+        archive
+            .directory(source, false)
+            .on('error', err => reject(err))
+            .pipe(stream);
 
-            // check if folder exists
-            if (!fs.existsSync(publishDir)) {
-                fs.mkdirSync(publishDir);
-            }
-            // create neu app
-            await asyncExec(`neu create ${appName}`, { cwd: publishDir });
-
-
-            // configure a lot of things
-            const appOptions = generateAppOptions(appName);
-            for(const key of Object.keys(appOptions))
-            await asyncWriteFile(path.resolve(appDir, key), appOptions[key]);
-            // ---
-
-            // build neu
-            await asyncExec("neu build --release", { cwd: path.resolve(publishDir, appName) });
-        } catch (e) {
-            // install neu globally
-            console.log("Error publishing application: ", e);
-        }
-    }
-
-    await publishNeu();
-
-
-    console.log("Out publish");
-});
+        stream.on('close', () => resolve());
+        archive.finalize();
+    });
+}
