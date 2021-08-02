@@ -26,8 +26,8 @@ app.post("/download/:appName", async (req, res) => {
 
 app.listen(port, async () => {
     console.log("Checking if nue installed");
-    // await getNeuInstalled();
-    const { initNeuPaths } = require("./NeuModules/NeuPathManager");
-    await initNeuPaths(true);
+    await getNeuInstalled();
+    // const { initNeuPaths } = require("./NeuModules/NeuPathManager");
+    // await initNeuPaths(true);
     console.log(`Example app listening at http://localhost:${port}`);
 });
