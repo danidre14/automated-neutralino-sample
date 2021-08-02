@@ -12,7 +12,7 @@ let hasNeu = false;
 const publishDirName = path.resolve(__dirname, "publishDir");
 const minNeuPaths = 5;
 const maxNeuPaths = 10;
-const neuPaths = getExistingNeuPaths(publishDirName);
+let neuPaths;
 const neuActivePaths = [];
 
 const initNeuPaths = async function (neuExists) {
@@ -22,6 +22,8 @@ const initNeuPaths = async function (neuExists) {
         if (!fs.existsSync(publishDirName)) {
             fs.mkdirSync(publishDirName);
         }
+
+        neuPaths = getExistingNeuPaths(publishDirName);
 
         for (let i = neuPaths.length; i < minNeuPaths; i++)
             await createNeuPath();

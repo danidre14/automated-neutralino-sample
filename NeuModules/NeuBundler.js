@@ -2,7 +2,7 @@ const path = require("path");
 const archiver = require("archiver");
 const fs = require("fs");
 const { asyncExec, asyncWriteFile } = require("../shellFunc");
-const { getNeuPath, removeActivePath } = require("./NeuPathManager");
+const { getNeuPath } = require("./NeuPathManager");
 
 const generateAppOptions = (appName) => {
     return {
@@ -56,7 +56,7 @@ const generateAppOptions = (appName) => {
             "fullScreen": false,
             "alwaysOnTop": false,
             "icon": "/resources/icons/appIcon.png",
-            "enableInspector": true,
+            "enableInspector": false,
             "borderless": false,
             "maximize": false
         },
@@ -87,12 +87,11 @@ module.exports.publishNeu = async function (appName = "myapp11") {
 
         // build neu
         await asyncExec("neu build", { cwd: appDir });
-        // await asyncExec("neu build --release", { cwd: appDir });
 
-        const outputPath = path.resolve(appDir, "dist", `${appName}-release.zip`)
-        await zipDirectory(path.resolve(appDir, "dist"), outputPath);
-        removeActivePath(pathName);
-        return outputPath;
+        const outputPath = path.resolve(appDir, "dist", `${appName}.zip`);
+
+        await zipDirectory(path.resolve(appDir, "dist", `${appName}`), outputPath);
+        return {outputPath, pathName};
     } catch (e) {
         // install neu globally
         console.log("Error publishing application: ", e);
@@ -106,7 +105,7 @@ function zipDirectory(source, out) {
 
     return new Promise((resolve, reject) => {
         archive
-            .directory(source, false)
+            .directory(source, path.basename(source))
             .on('error', err => reject(err))
             .pipe(stream);
 
