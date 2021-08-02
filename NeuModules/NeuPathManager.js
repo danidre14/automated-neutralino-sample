@@ -4,9 +4,9 @@ const crypto = require("crypto");
 const { asyncExec } = require("../shellFunc");
 
 const getExistingNeuPaths = dir =>
-  fs.readdirSync(dir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+    fs.readdirSync(dir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
 
 let hasNeu = false;
 const publishDirName = path.resolve(__dirname, "publishDir");
@@ -32,7 +32,7 @@ const initNeuPaths = async function (neuExists) {
     }
 }
 const createNeuPath = async function () {
-    if(!hasNeu) throw "Does not have neu";
+    if (!hasNeu) throw "Does not have neu";
     const pathName = "temp-" + crypto.randomBytes(4).toString("hex");
     const appDir = path.resolve(publishDirName, pathName);
 
@@ -54,9 +54,10 @@ const addActivePath = function (pathName) {
 }
 
 const removeActivePath = function (pathName) {
-    neuActivePaths.splice(neuActivePaths.indexOf(pathName), 1);
     const distDir = path.resolve(publishDirName, pathName, "dist");
-    fs.rmdirSync(distDir, { recursive: true });
+    fs.rmdir(distDir, { recursive: true }, () => {
+        neuActivePaths.splice(neuActivePaths.indexOf(pathName), 1);
+    });
 
     if (neuPaths.length >= maxNeuPaths)
         removeNeuPath(pathName);
