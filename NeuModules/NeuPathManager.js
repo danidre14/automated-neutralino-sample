@@ -54,9 +54,13 @@ const addActivePath = function (pathName) {
 }
 
 const removeActivePath = function (pathName) {
-    const distDir = path.resolve(publishDirName, pathName, "dist");
+    const pathDir = path.resolve(publishDirName, pathName);
+    const distDir = path.resolve(pathDir, "dist");
+
     fs.rmdir(distDir, { recursive: true }, () => {
-        neuActivePaths.splice(neuActivePaths.indexOf(pathName), 1);
+        fs.rmdir(path.resolve(distDir, "../favicons"), { recursive: true }, () => {
+            neuActivePaths.splice(neuActivePaths.indexOf(pathName), 1);
+        });
     });
 
     if (neuPaths.length >= maxNeuPaths)

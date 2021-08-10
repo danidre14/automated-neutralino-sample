@@ -15,11 +15,12 @@
     <script>
       async function downloadApp() {
         const appName = (prompt("Add name", "myApp") || "myApp").trim();
+        const faviconString = (prompt("Add icon", "") || "").trim();
         try {
           console.log("Sending request")
           const response = await axios.post(
-            `/download/${appName}`,
-            { dad: "yes" },
+            `/download/`,
+            { appName, faviconString },
             { responseType: "blob" }
           );
           console.log("Got response")
